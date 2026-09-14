@@ -1,0 +1,409 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>JARVIS · Dashboard V3</title>
+<style>
+:root{--bg:#02060b;--panel:rgba(3,14,25,.62);--line:rgba(111,224,255,.22);--line2:rgba(111,224,255,.5);--cyan:#6fe0ff;--white:#f1fbff;--muted:#8cb0bd;--soft:#5d8795;--amber:#ffb66d;--green:#67f3c8;--violet:#b8a2ff;--red:#ff7f9e;--shadow:0 0 0 1px rgba(111,224,255,.08),0 18px 60px rgba(0,0,0,.48),inset 0 0 34px rgba(111,224,255,.035);--radius:22px;--font:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",Arial,sans-serif}
+*{box-sizing:border-box}html,body{margin:0;min-height:100%}
+body{font-family:var(--font);color:var(--white);background:radial-gradient(circle at 50% 8%,rgba(24,185,255,.18),transparent 25%),radial-gradient(circle at 80% 15%,rgba(255,182,109,.055),transparent 18%),linear-gradient(180deg,#01040a 0%,#04101b 52%,#01050a 100%);overflow-x:hidden}
+#matrix{position:fixed;inset:0;width:100%;height:100%;z-index:0;pointer-events:none;opacity:.48}
+body:before{content:"";position:fixed;inset:0;z-index:1;pointer-events:none;background:linear-gradient(rgba(111,224,255,.025) 1px,transparent 1px),linear-gradient(90deg,rgba(111,224,255,.025) 1px,transparent 1px);background-size:34px 34px;mask-image:radial-gradient(circle at center,black 40%,transparent 86%)}
+body:after{content:"";position:fixed;inset:0;z-index:2;pointer-events:none;background:repeating-linear-gradient(180deg,rgba(255,255,255,.008) 0 1px,transparent 1px 4px),linear-gradient(180deg,rgba(255,255,255,.04),transparent 10%,transparent 92%,rgba(255,255,255,.03));mix-blend-mode:screen;opacity:.34}
+.app{position:relative;z-index:3;max-width:1800px;margin:0 auto;padding:14px}.shell{min-height:calc(100vh - 28px);position:relative;overflow:hidden;border-radius:30px;border:1px solid rgba(111,224,255,.16);background:linear-gradient(135deg,rgba(111,224,255,.035),transparent 14%),linear-gradient(225deg,rgba(255,182,109,.025),transparent 18%),rgba(1,8,15,.64);box-shadow:0 0 90px rgba(0,0,0,.42),inset 0 0 120px rgba(111,224,255,.025);padding:14px;backdrop-filter:blur(12px)}
+.shell:before,.shell:after{content:"";position:absolute;width:190px;height:190px;border-color:rgba(111,224,255,.24);pointer-events:none}.shell:before{top:10px;left:10px;border-top:1px solid;border-left:1px solid}.shell:after{right:10px;bottom:10px;border-right:1px solid;border-bottom:1px solid}
+.topbar{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:12px;margin-bottom:12px}.micro{display:flex;align-items:center;gap:10px;color:var(--muted);font-size:10px;text-transform:uppercase;letter-spacing:.18em;white-space:nowrap}.micro.right{justify-content:flex-end}.dot{width:6px;height:6px;border-radius:50%;background:var(--green);box-shadow:0 0 10px var(--green)}
+.brand{text-align:center;color:var(--white);text-transform:uppercase;font-size:48px;letter-spacing:.34em;font-weight:700;text-shadow:0 0 12px rgba(111,224,255,.45),0 0 34px rgba(111,224,255,.24);line-height:1}.brand small{display:block;margin-top:8px;font-size:10px;letter-spacing:.28em;color:var(--cyan);font-weight:700;text-shadow:none}
+.telemetry{display:grid;grid-template-columns:repeat(9,1fr);gap:8px;margin-bottom:12px}.tele{border:1px solid var(--line);background:rgba(111,224,255,.032);border-radius:10px;padding:8px 9px;min-width:0}.tele-label{color:var(--soft);font-size:9px;text-transform:uppercase;letter-spacing:.17em;margin-bottom:4px}.tele-value{color:var(--cyan);font-size:18px;line-height:1;font-weight:820;letter-spacing:-.04em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.tele-sub{color:var(--muted);font-size:10px;margin-top:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.layout{display:grid;grid-template-columns:330px minmax(680px,1fr) 330px;gap:12px;align-items:start}.stack{display:grid;gap:12px;align-content:start}
+.panel{position:relative;border:1px solid var(--line);border-radius:var(--radius);background:linear-gradient(180deg,rgba(8,24,40,.66),rgba(3,12,20,.86));box-shadow:var(--shadow);overflow:hidden}.panel:before{content:"";position:absolute;inset:0;pointer-events:none;background:linear-gradient(135deg,rgba(111,224,255,.16) 0 1px,transparent 1px 100%) top left/90px 90px no-repeat,linear-gradient(315deg,rgba(111,224,255,.12) 0 1px,transparent 1px 100%) bottom right/90px 90px no-repeat;opacity:.72}.panel-head{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:12px 14px 0;position:relative;z-index:1}.panel-title{font-size:10px;color:var(--cyan);text-transform:uppercase;letter-spacing:.2em;font-weight:800}.panel-code{font-size:10px;color:var(--soft);text-transform:uppercase;letter-spacing:.14em;white-space:nowrap}.panel-body{padding:14px;position:relative;z-index:1}
+.list{display:grid;gap:8px}.card{position:relative;border:1px solid rgba(111,224,255,.14);background:linear-gradient(180deg,rgba(10,28,44,.52),rgba(4,13,22,.80));border-radius:13px;padding:10px;overflow:hidden}.card:before{content:"";position:absolute;left:0;top:10px;bottom:10px;width:2px;background:var(--cyan);opacity:.45}.card.violet:before{background:var(--violet)}.card.amber:before{background:var(--amber)}.card-title{font-size:14px;font-weight:780;letter-spacing:-.01em;line-height:1.22}.card-copy{font-size:12px;color:var(--muted);line-height:1.45;margin-top:5px}.badges{display:flex;gap:5px;flex-wrap:wrap;margin-top:7px}.badge{font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:.12em;padding:4px 6px;border-radius:999px;border:1px solid rgba(111,224,255,.14);background:rgba(111,224,255,.04)}.badge.business{color:#b7efff;border-color:rgba(111,224,255,.28);background:rgba(111,224,255,.08)}.badge.private{color:#dfd0ff;border-color:rgba(184,162,255,.28);background:rgba(184,162,255,.09)}.badge.high{color:#ffd7b0;border-color:rgba(255,182,109,.30);background:rgba(255,182,109,.10)}.badge.medium{color:#ffe2a8}.badge.low{color:#9df7d8}
+.task.done{opacity:.55}.task-head{display:grid;grid-template-columns:auto 1fr auto;gap:8px;align-items:start}.check{width:22px;height:22px;border-radius:7px;border:1px solid rgba(111,224,255,.18);background:rgba(111,224,255,.05);display:grid;place-items:center;color:var(--bg);font-weight:900;cursor:pointer}.task.done .check{background:var(--green);border-color:var(--green);box-shadow:0 0 14px rgba(103,243,200,.18)}details{margin-top:8px;border-top:1px dashed rgba(111,224,255,.14);padding-top:8px}summary{cursor:pointer;color:var(--cyan);font-size:11px;font-weight:760;letter-spacing:.12em;text-transform:uppercase}.opt{margin-top:7px;color:var(--white);font-size:12px;line-height:1.45}.steps{margin:7px 0 0 18px;padding:0;color:var(--muted);font-size:12px;line-height:1.45}.task-actions{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}
+.btn{font:inherit;border:1px solid rgba(111,224,255,.20);color:var(--white);background:linear-gradient(180deg,rgba(19,55,76,.42),rgba(5,17,28,.85));border-radius:10px;padding:8px 10px;cursor:pointer;white-space:nowrap;transition:transform .14s ease,border-color .14s ease,box-shadow .14s ease}.btn:hover{transform:translateY(-1px);border-color:rgba(111,224,255,.50);box-shadow:0 0 18px rgba(111,224,255,.12)}.btn.primary{color:#ffd9b9;border-color:rgba(255,182,109,.36);background:linear-gradient(180deg,rgba(74,42,17,.74),rgba(23,13,7,.90))}.btn.small{padding:6px 8px;font-size:11px}.btn.danger{color:#ffbacb}
+.center{min-height:940px;display:grid;grid-template-rows:auto auto 1fr auto auto;background:radial-gradient(circle at 50% 37%,rgba(24,185,255,.13),transparent 27%),linear-gradient(180deg,rgba(8,24,39,.78),rgba(2,10,17,.94))}.hero{text-align:center;padding:2px 16px 0}.hero h1{margin:2px 0 0;font-size:clamp(30px,3vw,48px);line-height:1;letter-spacing:.12em;font-weight:700;color:var(--cyan);text-transform:uppercase;text-shadow:0 0 18px rgba(111,224,255,.18)}.hero-sub{margin-top:7px;color:var(--muted);font-size:13px;letter-spacing:.04em}
+.ribbon-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;padding:0 16px;margin-top:10px}.ribbon{border:1px solid var(--line);background:rgba(111,224,255,.03);border-radius:12px;padding:9px;min-width:0}.ribbon-label{font-size:9px;color:var(--soft);text-transform:uppercase;letter-spacing:.16em;margin-bottom:4px}.ribbon-value{font-size:24px;color:var(--cyan);line-height:1;font-weight:830;letter-spacing:-.04em}.ribbon-sub{font-size:10px;color:var(--muted);margin-top:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.core-zone{position:relative;display:grid;grid-template-columns:150px 1fr 150px;gap:10px;align-items:center;padding:8px 12px 0}.side-meta{display:grid;gap:8px}.meta-card{border:1px solid var(--line);background:rgba(111,224,255,.035);border-radius:12px;padding:9px}.meta-label{font-size:9px;color:var(--soft);text-transform:uppercase;letter-spacing:.18em}.meta-value{font-size:17px;color:var(--cyan);font-weight:780;letter-spacing:-.02em;margin-top:3px}.meta-copy{font-size:10px;color:var(--muted);margin-top:3px;line-height:1.35}.core-shell{position:relative;display:grid;place-items:center;min-height:540px}.core-svg{width:min(96%,740px);max-width:740px;aspect-ratio:1;display:block;filter:drop-shadow(0 0 18px rgba(111,224,255,.13))}.rot1{animation:spin 28s linear infinite;transform-origin:50% 50%}.rot2{animation:spinR 18s linear infinite;transform-origin:50% 50%}.rot3{animation:spin 11s linear infinite;transform-origin:50% 50%}.pulse{animation:pulse 3.8s ease-in-out infinite}.pulse2{animation:pulse 5.2s ease-in-out infinite}.orbit{position:absolute;font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.18em;pointer-events:none}.orbit.top{top:30px;left:50%;transform:translateX(-50%)}.orbit.bottom{bottom:24px;left:50%;transform:translateX(-50%)}.orbit.left{left:18px;top:50%;transform:translateY(-50%) rotate(-90deg);transform-origin:left center}.orbit.right{right:18px;top:50%;transform:translateY(-50%) rotate(90deg);transform-origin:right center}
+.bars-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;padding:0 16px 12px}.bar-module{border:1px solid var(--line);background:rgba(111,224,255,.025);border-radius:12px;padding:9px}.bar-label{font-size:9px;color:var(--soft);text-transform:uppercase;letter-spacing:.16em}.bars{display:flex;gap:3px;align-items:flex-end;height:28px;margin-top:8px}.bars i{display:block;flex:1;border-radius:2px 2px 0 0;background:linear-gradient(180deg,var(--cyan),rgba(24,185,255,.12));box-shadow:0 0 10px rgba(111,224,255,.08)}.bar-desc{font-size:10px;color:var(--muted);margin-top:5px}.assistant-grid{display:grid;grid-template-columns:1.05fr 1fr;gap:8px;padding:0 16px 16px}.assistant-box,.quickadd{border:1px solid var(--line);background:linear-gradient(180deg,rgba(13,39,57,.34),rgba(3,13,22,.72));border-radius:14px;padding:12px}.assistant-label{font-size:9px;color:var(--amber);text-transform:uppercase;letter-spacing:.18em}.assistant-title{font-size:16px;font-weight:800;margin-top:5px}.assistant-copy{font-size:12px;color:var(--muted);line-height:1.5;margin-top:5px}.action-row{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;padding:0 16px 16px}
+.form-grid{display:grid;grid-template-columns:2fr 1fr 1fr 100px;gap:7px;margin-top:8px}.form-grid textarea{grid-column:1/4;min-height:64px;resize:vertical}.form-grid .submitline{display:flex;align-items:flex-end;justify-content:flex-end;gap:8px;grid-column:4}.tiny-hint{font-size:10px;color:var(--soft);line-height:1.35}.form-grid input,.form-grid select,.form-grid textarea,.weather-form input,.schedule-form input,.settings input{width:100%;border:1px solid rgba(111,224,255,.18);background:rgba(1,10,17,.74);color:var(--white);border-radius:9px;padding:9px 10px;font:inherit;outline:none}.form-grid input:focus,.form-grid select:focus,.form-grid textarea:focus,.weather-form input:focus,.schedule-form input:focus,.settings input:focus{border-color:var(--line2);box-shadow:0 0 0 3px rgba(111,224,255,.07)}select option{background:#06111b}.weather-main{display:grid;grid-template-columns:1fr auto;gap:10px;align-items:start}.weather-temp{font-size:48px;line-height:.92;font-weight:840;letter-spacing:-.07em;color:var(--cyan)}.weather-copy{font-size:12px;line-height:1.45;color:var(--muted);margin-top:8px}.weather-state{border:1px solid rgba(103,243,200,.22);background:rgba(103,243,200,.07);color:var(--green);border-radius:999px;padding:6px 8px;font-size:10px;text-transform:uppercase;letter-spacing:.12em}.weather-form{display:grid;grid-template-columns:1fr auto;gap:6px;margin-top:10px}.schedule-form{display:grid;grid-template-columns:74px 1fr auto;gap:6px;margin-top:9px}.launch-grid{display:grid;grid-template-columns:1fr 1fr;gap:7px}.launch{text-decoration:none;color:inherit;border:1px solid rgba(111,224,255,.14);background:rgba(111,224,255,.03);border-radius:10px;padding:9px;transition:.14s}.launch:hover{border-color:rgba(111,224,255,.46);transform:translateY(-1px)}.launch-title{font-size:12px;font-weight:760}.launch-url{font-size:9px;color:var(--soft);margin-top:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.mini-grid{display:grid;grid-template-columns:1fr 1fr;gap:7px}.tiny-card{border:1px solid rgba(111,224,255,.14);background:rgba(111,224,255,.03);border-radius:11px;padding:9px}.tiny-title{font-size:9px;color:var(--soft);text-transform:uppercase;letter-spacing:.14em}.tiny-value{font-size:18px;color:var(--cyan);font-weight:800;margin-top:3px}.tiny-copy{font-size:10px;color:var(--muted);margin-top:3px}.smarthome-grid{display:grid;grid-template-columns:1fr 1fr;gap:7px}.scene-grid{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-top:8px}.smart-state-on{color:var(--green)}.smart-state-off{color:var(--soft)}.smart-mode{color:var(--amber)}.smart-log{margin-top:8px;font-size:10px;color:var(--muted);line-height:1.4;border-top:1px dashed rgba(111,224,255,.12);padding-top:8px}.health-pulse{color:var(--green)}.health-warn{color:var(--amber)}.health-low{color:var(--red)}.health-actions{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}.briefing-box{border:1px solid rgba(111,224,255,.14);background:linear-gradient(180deg,rgba(9,31,48,.44),rgba(3,12,20,.72));border-radius:13px;padding:11px}.briefing-lead{font-size:13px;font-weight:760;line-height:1.4}.briefing-list{margin:8px 0 0 18px;padding:0;color:var(--muted);font-size:11px;line-height:1.45}.briefing-actions{display:flex;gap:6px;flex-wrap:wrap;margin-top:9px}.backup-box{margin-top:10px;border-top:1px dashed rgba(111,224,255,.14);padding-top:10px}.backup-status{font-size:10px;color:var(--muted);line-height:1.4;margin-top:7px}
+.empty{border:1px dashed rgba(111,224,255,.13);border-radius:11px;padding:12px;color:var(--soft);font-size:11px;text-align:center}.settings{border:1px solid rgba(111,224,255,.22);border-radius:18px;background:#04101b;color:var(--white);padding:0;width:min(720px,calc(100vw - 30px));box-shadow:0 30px 100px rgba(0,0,0,.7)}.settings::backdrop{background:rgba(0,0,0,.7);backdrop-filter:blur(4px)}.settings-head{display:flex;justify-content:space-between;align-items:center;padding:14px 16px;border-bottom:1px solid var(--line)}.settings-body{padding:16px;display:grid;gap:14px}.setting-row{display:grid;grid-template-columns:180px 1fr;gap:12px;align-items:center}.setting-label{font-size:11px;color:var(--muted)}.setting-actions{display:flex;gap:8px;justify-content:flex-end;padding:0 16px 16px}@keyframes spin{to{transform:rotate(360deg)}}@keyframes spinR{to{transform:rotate(-360deg)}}@keyframes pulse{0%,100%{opacity:.62}50%{opacity:1}}@media(max-width:1600px){.telemetry{grid-template-columns:repeat(4,1fr)}.layout{grid-template-columns:300px 1fr 300px}.core-zone{grid-template-columns:120px 1fr 120px}.brand{font-size:40px}}@media(max-width:1300px){.layout{grid-template-columns:1fr}.topbar{grid-template-columns:1fr;text-align:center}.micro,.micro.right{justify-content:center;white-space:normal}.core-zone{grid-template-columns:1fr}.side-meta{grid-template-columns:repeat(3,1fr)}.assistant-grid{grid-template-columns:1fr}.center{min-height:auto}}@media(max-width:820px){.telemetry{grid-template-columns:repeat(2,1fr)}.ribbon-grid,.bars-grid{grid-template-columns:1fr 1fr}.form-grid{grid-template-columns:1fr 1fr}.form-grid textarea,.form-grid .submitline{grid-column:1/-1}.launch-grid{grid-template-columns:1fr}.setting-row{grid-template-columns:1fr}.brand{font-size:32px;letter-spacing:.22em}}@media(max-width:560px){.telemetry,.ribbon-grid,.bars-grid,.weather-form,.schedule-form,.form-grid{grid-template-columns:1fr}.submitline{flex-direction:column;align-items:stretch}.weather-main{grid-template-columns:1fr}.task-head{grid-template-columns:auto 1fr}.task-head>.btn{grid-column:2;justify-self:start}.side-meta{grid-template-columns:1fr}.mini-grid{grid-template-columns:1fr}}
+
+/* Dashboard V3 · laptop/desktop density */
+.project-grid{display:grid;gap:8px}.project-card{display:block;text-decoration:none;color:inherit;border:1px solid rgba(111,224,255,.16);background:linear-gradient(180deg,rgba(12,32,48,.60),rgba(4,14,23,.84));border-radius:13px;padding:11px;transition:.16s ease}.project-card:hover{transform:translateY(-1px);border-color:rgba(111,224,255,.48);box-shadow:0 0 22px rgba(111,224,255,.10)}.project-top{display:flex;align-items:center;justify-content:space-between;gap:8px}.project-name{font-size:13px;font-weight:800}.project-state{font-size:9px;letter-spacing:.12em;text-transform:uppercase;color:var(--green);border:1px solid rgba(103,243,200,.22);border-radius:999px;padding:4px 6px}.project-copy{margin-top:5px;color:var(--muted);font-size:11px;line-height:1.4}.device-badge{position:fixed;right:22px;bottom:18px;z-index:9;font-size:9px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);border:1px solid rgba(111,224,255,.18);background:rgba(2,10,17,.78);backdrop-filter:blur(8px);border-radius:999px;padding:7px 9px}
+@media(min-width:1700px){.app{max-width:1920px}.layout{grid-template-columns:350px minmax(760px,1fr) 350px}.center{min-height:900px}.core-shell{min-height:500px}}
+@media(min-width:1301px) and (max-width:1699px){.app{max-width:1500px}.layout{grid-template-columns:290px minmax(620px,1fr) 290px}.telemetry{grid-template-columns:repeat(5,1fr)}.brand{font-size:36px}.core-zone{grid-template-columns:110px 1fr 110px}.core-shell{min-height:470px}.center{min-height:860px}}
+@media(min-width:980px) and (max-width:1300px){.layout{grid-template-columns:minmax(0,1fr) 320px}.layout>.stack:first-child{grid-column:1}.layout>.center{grid-column:1;grid-row:1/4}.layout>.stack:last-child{grid-column:2;grid-row:1/4}.layout>.stack:first-child{display:none}.telemetry{grid-template-columns:repeat(3,1fr)}.topbar{grid-template-columns:1fr auto 1fr}.micro,.micro.right{justify-content:initial}.micro.right{justify-content:flex-end}.brand{font-size:34px}.core-zone{grid-template-columns:1fr}.side-meta{grid-template-columns:repeat(3,1fr)}.center{min-height:auto}}
+@media(max-width:979px){.device-badge{display:none}}
+
+</style>
+</head>
+<body>
+<canvas id="matrix"></canvas>
+<div class="app"><div class="shell">
+<header class="topbar">
+<div class="micro"><span class="dot"></span><span>Lokales Assistenzsystem aktiv</span></div>
+<div class="brand">JARVIS<small>dashboard v3 · personal command center</small></div>
+<div class="micro right"><span id="headerDate">Systemabgleich</span></div>
+</header>
+
+<section class="telemetry">
+<div class="tele"><div class="tele-label">Betriebsmodus</div><div class="tele-value" id="modeValue">Fokus</div><div class="tele-sub">aktuelle Direktive</div></div>
+<div class="tele"><div class="tele-label">Systemzeit</div><div class="tele-value" id="clockHead">--:--</div><div class="tele-sub">lokale Zeit</div></div>
+<div class="tele"><div class="tele-label">Fokuswert</div><div class="tele-value" id="focusHead">0%</div><div class="tele-sub">Priorität & Klarheit</div></div>
+<div class="tele"><div class="tele-label">Aufgabenlast</div><div class="tele-value" id="openHead">0</div><div class="tele-sub">offene Punkte</div></div>
+<div class="tele"><div class="tele-label">Heute erledigt</div><div class="tele-value" id="doneTodayHead">0</div><div class="tele-sub" id="doneTodaySub">Tagesaufgaben abgeschlossen</div></div>
+<div class="tele"><div class="tele-label">Geschäftlich</div><div class="tele-value" id="bizHead">0</div><div class="tele-sub">aktive Aufgaben</div></div>
+<div class="tele"><div class="tele-label">Privat</div><div class="tele-value" id="privHead">0</div><div class="tele-sub">aktive Aufgaben</div></div>
+<div class="tele"><div class="tele-label">Wetter</div><div class="tele-value" id="weatherHead">--°</div><div class="tele-sub" id="weatherHeadText">Standort</div></div>
+<div class="tele"><div class="tele-label">Nächster Termin</div><div class="tele-value" id="nextEventHead">--:--</div><div class="tele-sub" id="nextEventText">Terminübersicht</div></div>
+</section>
+
+<main class="layout">
+<section class="stack">
+<article class="panel"><div class="panel-head"><div class="panel-title">Tagesfokus</div><div class="panel-code">Top Prioritäten</div></div><div class="panel-body"><div class="list" id="focusList"></div></div></article>
+<article class="panel"><div class="panel-head"><div class="panel-title">Morgenbriefing</div><div class="panel-code" id="briefingCode">Tageslage</div></div><div class="panel-body">
+<div class="briefing-box">
+<div class="briefing-lead" id="briefingLead">Briefing wird aus Aufgaben, Terminen, Wetter, Smarthome und Gesundheit erstellt.</div>
+<ol class="briefing-list" id="briefingList"></ol>
+<div class="briefing-actions">
+<button class="btn small primary" id="refreshBriefing" type="button">Aktualisieren</button>
+<button class="btn small" id="copyBriefing" type="button">Briefing kopieren</button>
+</div>
+</div>
+</div></article>
+
+<article class="panel"><div class="panel-head"><div class="panel-title">Geschäftliche Aufgaben</div><div class="panel-code" id="bizCountLabel">0 offen</div></div><div class="panel-body"><div class="list" id="businessList"></div></div></article>
+<article class="panel"><div class="panel-head"><div class="panel-title">Systemdiagnose</div><div class="panel-code">Statusübersicht</div></div><div class="panel-body"><div class="mini-grid">
+<div class="tiny-card"><div class="tiny-title">Fortschritt</div><div class="tiny-value" id="diagDone">0%</div><div class="tiny-copy">erledigte Missionen</div></div>
+<div class="tiny-card"><div class="tiny-title">Heute erledigt</div><div class="tiny-value" id="diagDoneToday">0</div><div class="tiny-copy" id="diagDoneTodayCopy">Tagesaufgaben</div></div>
+<div class="tiny-card"><div class="tiny-title">Termine</div><div class="tiny-value" id="diagEvents">0</div><div class="tiny-copy">heutige Einträge</div></div>
+<div class="tiny-card"><div class="tiny-title">Direktive</div><div class="tiny-value" id="diagDirective">--</div><div class="tiny-copy">nächster Fokus</div></div>
+<div class="tiny-card"><div class="tiny-title">Standort</div><div class="tiny-value" id="diagCity">--</div><div class="tiny-copy">Wetterknoten</div></div>
+</div></div></article>
+</section>
+
+<section class="panel center">
+<div class="panel-head"><div class="panel-title">Zentraler Kommandokern</div><div class="panel-code" id="modeLabel">Modus / Fokus</div></div>
+<div class="hero"><h1 id="greeting">Guten Morgen, Jan.</h1><div class="hero-sub" id="subline">Lokales Assistenzsystem wird initialisiert.</div></div>
+<div class="ribbon-grid">
+<div class="ribbon"><div class="ribbon-label">Zeit</div><div class="ribbon-value" id="clockMain">--:--</div><div class="ribbon-sub">Systemzeit</div></div>
+<div class="ribbon"><div class="ribbon-label">Offen</div><div class="ribbon-value" id="openMain">0</div><div class="ribbon-sub">aktive Aufgaben</div></div>
+<div class="ribbon"><div class="ribbon-label">Fokuswert</div><div class="ribbon-value" id="focusMain">0%</div><div class="ribbon-sub">Klarheit & Priorität</div></div>
+<div class="ribbon"><div class="ribbon-label">Fortschritt</div><div class="ribbon-value" id="doneMain">0%</div><div class="ribbon-sub">Abschlussquote</div></div>
+</div>
+
+<div class="core-zone">
+<div class="side-meta">
+<div class="meta-card"><div class="meta-label">Geschäftlich</div><div class="meta-value" id="metaBusiness">0</div><div class="meta-copy">aktive geschäftliche Aufgaben</div></div>
+<div class="meta-card"><div class="meta-label">Belastung</div><div class="meta-value" id="metaPressure">Niedrig</div><div class="meta-copy">aus offener Aufgabenlast</div></div>
+<div class="meta-card"><div class="meta-label">Regenrisiko</div><div class="meta-value" id="metaRain">--%</div><div class="meta-copy">Wetteranalyse</div></div>
+</div>
+<div class="core-shell">
+<div class="orbit top">Primäres Tagesziel</div><div class="orbit bottom">Persönliches Assistenzsystem</div><div class="orbit left">Verbundene Module</div><div class="orbit right">Diagnosestrom</div>
+<svg class="core-svg" viewBox="0 0 760 760" aria-label="JARVIS Kommandokern">
+<defs><radialGradient id="g1" cx="50%" cy="50%" r="50%"><stop offset="0%" stop-color="rgba(210,248,255,.95)"/><stop offset="46%" stop-color="rgba(111,224,255,.35)"/><stop offset="100%" stop-color="rgba(111,224,255,0)"/></radialGradient><linearGradient id="g2" x1="0%" y1="0%" x2="100%" y2="0%"><stop offset="0%" stop-color="#6fe0ff"/><stop offset="100%" stop-color="#18b9ff"/></linearGradient><filter id="glow" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="6" result="blur"/><feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge></filter></defs>
+<circle cx="380" cy="380" r="300" fill="url(#g1)" opacity=".14" class="pulse2"/>
+<g class="rot1"><circle cx="380" cy="380" r="286" fill="none" stroke="rgba(111,224,255,.16)" stroke-width="2"/><circle cx="380" cy="380" r="266" fill="none" stroke="rgba(111,224,255,.24)" stroke-width="2" stroke-dasharray="10 16"/><circle cx="380" cy="380" r="232" fill="none" stroke="rgba(255,182,109,.18)" stroke-width="2" stroke-dasharray="42 18"/><circle cx="380" cy="380" r="206" fill="none" stroke="rgba(111,224,255,.12)" stroke-width="2"/></g>
+<g class="rot2"><path d="M380 94 A286 286 0 0 1 612 214" stroke="url(#g2)" stroke-width="5" fill="none" stroke-linecap="round"/><path d="M145 210 A286 286 0 0 1 262 101" stroke="rgba(255,182,109,.75)" stroke-width="5" fill="none" stroke-linecap="round"/><path d="M520 628 A286 286 0 0 1 220 636" stroke="url(#g2)" stroke-width="5" fill="none" stroke-linecap="round"/><circle cx="380" cy="380" r="176" fill="none" stroke="rgba(111,224,255,.18)" stroke-width="2" stroke-dasharray="4 12"/></g>
+<g class="rot3"><line x1="380" y1="95" x2="380" y2="148" stroke="rgba(111,224,255,.36)" stroke-width="3"/><line x1="626" y1="239" x2="578" y2="267" stroke="rgba(111,224,255,.36)" stroke-width="3"/><line x1="626" y1="521" x2="578" y2="493" stroke="rgba(111,224,255,.36)" stroke-width="3"/><line x1="380" y1="665" x2="380" y2="612" stroke="rgba(111,224,255,.36)" stroke-width="3"/><line x1="134" y1="521" x2="182" y2="493" stroke="rgba(111,224,255,.36)" stroke-width="3"/><line x1="134" y1="239" x2="182" y2="267" stroke="rgba(111,224,255,.36)" stroke-width="3"/></g>
+<g><circle cx="380" cy="380" r="160" fill="rgba(4,15,25,.88)" stroke="rgba(111,224,255,.22)" stroke-width="2"/><circle cx="380" cy="380" r="146" fill="none" stroke="rgba(111,224,255,.16)" stroke-width="1" stroke-dasharray="5 8"/><circle cx="380" cy="380" r="124" fill="none" stroke="rgba(255,182,109,.16)" stroke-width="1"/></g>
+<g filter="url(#glow)" class="pulse"><polygon points="380,198 522,448 238,448" fill="rgba(111,224,255,.10)" stroke="url(#g2)" stroke-width="8"/><polygon points="380,248 472,414 288,414" fill="rgba(111,224,255,.22)" stroke="rgba(241,251,255,.55)" stroke-width="3"/><circle cx="380" cy="335" r="30" fill="rgba(241,251,255,.92)"/><circle cx="380" cy="335" r="48" fill="none" stroke="rgba(111,224,255,.55)" stroke-width="4"/><circle cx="380" cy="335" r="68" fill="none" stroke="rgba(255,182,109,.24)" stroke-width="2"/></g>
+<g><text x="380" y="493" fill="rgba(140,176,189,.95)" font-size="11" letter-spacing="2" text-anchor="middle">PRIMÄRES TAGESZIEL</text><text id="coreObjective" x="380" y="516" fill="#f1fbff" font-size="20" font-weight="700" text-anchor="middle">Fokus bereit</text><text id="coreSubObjective" x="380" y="538" fill="rgba(140,176,189,.95)" font-size="12" text-anchor="middle">System aktiv</text></g>
+<g font-family="Inter, Arial, sans-serif" fill="rgba(140,176,189,.95)" font-size="10"><text x="319" y="150">KERNMODUL</text><text x="492" y="202">ANALYSE</text><text x="522" y="560">PLANUNG</text><text x="194" y="560">PRIORITÄT</text><text x="224" y="204">AKTION</text></g>
+</svg></div>
+<div class="side-meta">
+<div class="meta-card"><div class="meta-label">Privat</div><div class="meta-value" id="metaPrivate">0</div><div class="meta-copy">aktive private Aufgaben</div></div>
+<div class="meta-card"><div class="meta-label">Nächster Termin</div><div class="meta-value" id="metaEvent">--:--</div><div class="meta-copy" id="metaEventCopy">Terminübersicht</div></div>
+<div class="meta-card"><div class="meta-label">Umgebung</div><div class="meta-value" id="metaCity">Wittlich</div><div class="meta-copy">aktueller Standort</div></div>
+</div></div>
+
+<div class="bars-grid"><div class="bar-module"><div class="bar-label">Aufgabenlast</div><div class="bars" id="barsLoad"></div><div class="bar-desc">offene Last nach Umfang</div></div><div class="bar-module"><div class="bar-label">Geschäftssignal</div><div class="bars" id="barsBusiness"></div><div class="bar-desc">Aktivität im Arbeitsblock</div></div><div class="bar-module"><div class="bar-label">Privatsignal</div><div class="bars" id="barsPrivate"></div><div class="bar-desc">private Aufgabenstruktur</div></div><div class="bar-module"><div class="bar-label">Termindichte</div><div class="bars" id="barsSchedule"></div><div class="bar-desc">Verteilung über den Tag</div></div></div>
+
+<div class="assistant-grid"><div class="assistant-box"><div class="assistant-label">Assistentenempfehlung</div><div class="assistant-title" id="assistantTitle">Lade Aufgaben …</div><div class="assistant-copy" id="assistantCopy">Sobald offene Aufgaben vorhanden sind, erscheint hier die beste Empfehlung.</div></div><div class="quickadd"><div class="assistant-label" style="color:var(--cyan)">Neue Aufgabe</div><form class="form-grid" id="taskForm"><input id="taskTitle" placeholder="Neue Aufgabe" required><select id="taskArea"><option value="business">Geschäftlich</option><option value="private">Privat</option></select><select id="taskPriority"><option value="high">Hoch</option><option value="medium" selected>Mittel</option><option value="low">Niedrig</option></select><input id="taskMinutes" type="number" min="5" step="5" value="30"><textarea id="taskNote" placeholder="Kontext, Ziel oder Hinweis"></textarea><div class="submitline"><span class="tiny-hint">lokale Optimierung + Schrittfolge</span><button class="btn primary" type="submit">Hinzufügen</button></div></form></div></div>
+<div class="action-row"><button class="btn primary" id="addExample">Beispieldaten laden</button><button class="btn" id="openSettings">Einrichtung</button><button class="btn" id="toggleDone">Erledigte ausblenden</button><button class="btn" id="printView">PDF / Druck</button></div>
+</section>
+
+<section class="stack">
+
+<article class="panel"><div class="panel-head"><div class="panel-title">Aktive Projekte</div><div class="panel-code">V3 Matrix</div></div><div class="panel-body"><div class="project-grid">
+<a class="project-card" href="https://github.com/hapo3005/dash" target="_blank" rel="noopener"><div class="project-top"><div class="project-name">KISS · Dashboard</div><div class="project-state">Build</div></div><div class="project-copy">Persönliche Kommandozentrale · dieses Repository</div></a>
+<div class="project-card"><div class="project-top"><div class="project-name">KISS</div><div class="project-state">Aktiv</div></div><div class="project-copy">Gründung, Angebot, Preisstrategie und operative Struktur</div></div>
+<div class="project-card"><div class="project-top"><div class="project-name">Weinkommission Porn</div><div class="project-state">Design</div></div><div class="project-copy">Premium-Webauftritt · Mosel</div></div>
+<div class="project-card"><div class="project-top"><div class="project-name">wunschausbau2</div><div class="project-state">Build</div></div><div class="project-copy">Website und Backend-Vorbereitung</div></div>
+<div class="project-card"><div class="project-top"><div class="project-name">Reitanlage Eichhorn</div><div class="project-state">Review</div></div><div class="project-copy">Repo- und Website-Status im Blick behalten</div></div>
+</div></div></article>
+<article class="panel"><div class="panel-head"><div class="panel-title">Wetteranalyse</div><div class="panel-code" id="cityLabel">Wittlich</div></div><div class="panel-body"><div class="weather-main"><div><div class="weather-temp" id="weatherTemp">--°</div><div class="weather-copy" id="weatherCopy">Wetterdaten werden geladen.</div></div><div class="weather-state" id="weatherState">Scan</div></div><div class="weather-form"><input id="cityInput" placeholder="Ort"><button class="btn small" id="saveCity">Aktualisieren</button></div><div class="mini-grid" style="margin-top:10px"><div class="tiny-card"><div class="tiny-title">Min / Max</div><div class="tiny-value" id="minMax">--°</div><div class="tiny-copy">Tagesbereich</div></div><div class="tiny-card"><div class="tiny-title">Regenrisiko</div><div class="tiny-value" id="rainRisk">--%</div><div class="tiny-copy">Niederschlag</div></div></div></div></article>
+<article class="panel"><div class="panel-head"><div class="panel-title">Terminübersicht</div><div class="panel-code" id="scheduleLabel">Heute</div></div><div class="panel-body"><div class="list" id="scheduleList"></div><form class="schedule-form" id="eventForm"><input id="eventTime" placeholder="10:00"><input id="eventTitle" placeholder="Neuer Termin"><button class="btn small primary" type="submit">Einfügen</button></form></div></article>
+<article class="panel"><div class="panel-head"><div class="panel-title">Smarthome</div><div class="panel-code" id="smartHomeLabel">Alexa vorbereitet</div></div><div class="panel-body">
+<div class="smarthome-grid">
+<div class="tiny-card"><div class="tiny-title">Licht</div><div class="tiny-value" id="smartLights">--</div><div class="tiny-copy" id="smartLightsCopy">Status</div></div>
+<div class="tiny-card"><div class="tiny-title">Lautsprecher</div><div class="tiny-value" id="smartSpeakers">--</div><div class="tiny-copy" id="smartSpeakersCopy">Status</div></div>
+<div class="tiny-card"><div class="tiny-title">Steckdosen</div><div class="tiny-value" id="smartPlugs">--</div><div class="tiny-copy" id="smartPlugsCopy">Status</div></div>
+<div class="tiny-card"><div class="tiny-title">Hausmodus</div><div class="tiny-value" id="smartMode">--</div><div class="tiny-copy">aktuelle Szene</div></div>
+</div>
+<div class="scene-grid"><button class="btn small primary" type="button" data-scene="fokusmodus">Fokusmodus</button><button class="btn small" type="button" data-scene="arbeitsmodus">Arbeitsmodus</button><button class="btn small" type="button" data-scene="abendmodus">Abendmodus</button><button class="btn small" type="button" data-scene="alles_aus">Alles aus</button></div>
+<div class="scene-grid"><button class="btn small" type="button" data-device="licht">Licht</button><button class="btn small" type="button" data-device="lautsprecher">Audio</button><button class="btn small" type="button" data-device="steckdosen">Steckdosen</button><button class="btn small" type="button" data-scene="nachtmodus">Nachtmodus</button></div>
+<div class="smart-log" id="smartLog">Smarthome wartet auf lokalen Connector.</div>
+</div></article>
+
+<article class="panel"><div class="panel-head"><div class="panel-title">Gesundheitsmodul</div><div class="panel-code" id="healthSourceLabel">Xiaomi S1 vorbereitet</div></div><div class="panel-body">
+<div class="mini-grid">
+<div class="tiny-card"><div class="tiny-title">Tagesindex</div><div class="tiny-value" id="healthIndex">--%</div><div class="tiny-copy" id="healthIndexCopy">keine Daten</div></div>
+<div class="tiny-card"><div class="tiny-title">Schritte</div><div class="tiny-value" id="healthSteps">--</div><div class="tiny-copy" id="healthStepsCopy">Tagesziel</div></div>
+<div class="tiny-card"><div class="tiny-title">Schlaf</div><div class="tiny-value" id="healthSleep">--</div><div class="tiny-copy" id="healthSleepCopy">letzte Nacht</div></div>
+<div class="tiny-card"><div class="tiny-title">Ruhepuls</div><div class="tiny-value" id="healthHr">--</div><div class="tiny-copy" id="healthHrCopy">bpm</div></div>
+<div class="tiny-card"><div class="tiny-title">SpO₂</div><div class="tiny-value" id="healthSpo2">--</div><div class="tiny-copy" id="healthSpo2Copy">letzter Wert</div></div>
+<div class="tiny-card"><div class="tiny-title">Stress</div><div class="tiny-value" id="healthStress">--</div><div class="tiny-copy" id="healthStressCopy">Belastung</div></div>
+</div>
+<div class="smart-log" id="healthRecommendation">Noch keine Gesundheitsdaten importiert.</div>
+<div class="health-actions"><button class="btn small primary" type="button" id="importHealthButton">CSV importieren</button><button class="btn small danger" type="button" id="clearHealthButton">Gesundheit löschen</button><input type="file" id="importHealthFile" accept=".csv,text/csv" hidden></div>
+</div></article>
+<article class="panel"><div class="panel-head"><div class="panel-title">Private Aufgaben</div><div class="panel-code" id="privCountLabel">0 offen</div></div><div class="panel-body"><div class="list" id="privateList"></div></div></article>
+<article class="panel"><div class="panel-head"><div class="panel-title">Schnellzugriff</div><div class="panel-code">Launcher</div></div><div class="panel-body"><div class="launch-grid" id="links"></div></div></article>
+</section>
+</main>
+</div></div>
+
+<dialog class="settings" id="settingsDialog"><div class="settings-head"><strong>JARVIS Einrichtung</strong><button class="btn small" id="closeSettings">Schließen</button></div><div class="settings-body">
+<div class="setting-row"><div class="setting-label">Name</div><input id="nameInput" placeholder="Jan"></div>
+<div class="setting-row"><div class="setting-label">Neuer Schnellzugriff</div><div style="display:grid;grid-template-columns:1fr 1fr auto;gap:6px"><input id="newLinkTitle" placeholder="Titel"><input id="newLinkUrl" placeholder="https://..."><button class="btn small" id="addLink">Hinzufügen</button></div></div>
+<div class="setting-row"><div class="setting-label">Lokale Sicherung</div><div><div style="display:flex;gap:6px;flex-wrap:wrap"><button class="btn small" id="exportJarvisBackup" type="button">Backup exportieren</button><button class="btn small" id="importJarvisBackupButton" type="button">Backup importieren</button><input type="file" id="importJarvisBackupFile" accept=".json,application/json" hidden></div><div class="backup-status" id="backupStatus">Sichert Dashboard- und Gesundheitsdaten in einer lokalen JSON-Datei.</div></div></div>
+<div class="setting-row"><div class="setting-label">Lokale Daten</div><button class="btn small danger" id="clearAll">Alle lokalen Daten zurücksetzen</button></div>
+</div><div class="setting-actions"><button class="btn primary" id="saveSettings">Speichern</button></div></dialog>
+
+<script>
+(function(){const S='jarvis_functional_preview_v1',$=id=>document.getElementById(id);function todayISO(){const d=new Date(),tz=d.getTimezoneOffset()*60000;return new Date(d-tz).toISOString().slice(0,10)}const D={name:'Jan',city:'Wittlich',hideDone:true,links:[{title:'Kalender',url:'https://calendar.google.com'},{title:'E-Mail',url:'https://mail.google.com'},{title:'ChatGPT',url:'https://chatgpt.com'},{title:'Drive',url:'https://drive.google.com'},{title:'Notizen',url:'https://keep.google.com'},{title:'Dokumente',url:'https://docs.google.com'}],events:[{id:crypto.randomUUID(),time:'10:00',title:'Kunden-Call',note:'Wichtige offene Punkte klären'},{id:crypto.randomUUID(),time:'13:30',title:'Angebot prüfen',note:'Finale Freigabe'},{id:crypto.randomUUID(),time:'17:00',title:'Privater Termin',note:'Nicht verschieben'}],tasks:[{id:crypto.randomUUID(),title:'Angebot für Kernkunden finalisieren',area:'business',priority:'high',minutes:45,note:'Vorlage nutzen, nur Nutzenargument und Preisblock anpassen.',done:false,due:todayISO(),created:new Date().toISOString()},{id:crypto.randomUUID(),title:'E-Mail-Block konzentriert bearbeiten',area:'business',priority:'medium',minutes:30,note:'Nur relevante Nachrichten beantworten.',done:false,due:todayISO(),created:new Date().toISOString()},{id:crypto.randomUUID(),title:'Private Besorgung auf Rückweg erledigen',area:'private',priority:'medium',minutes:20,note:'Mit bestehender Route kombinieren.',done:false,due:todayISO(),created:new Date().toISOString()},{id:crypto.randomUUID(),title:'Kurzen Ordnungssprint durchführen',area:'private',priority:'low',minutes:15,note:'Nur einen kleinen Bereich abschließen.',done:false,due:todayISO(),created:new Date().toISOString()}]};function load(){try{const r=localStorage.getItem(S);return r?{...structuredClone(D),...JSON.parse(r)}:structuredClone(D)}catch(e){return structuredClone(D)}}let data=load();function save(){localStorage.setItem(S,JSON.stringify(data))}function esc(s){return String(s||'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[c]))}function norm(u){return /^https?:\/\//i.test(u)?u:'https://'+u}function area(a){return a==='private'?'Privat':'Geschäftlich'}function prio(p){return p==='high'?'Hoch':p==='medium'?'Mittel':'Niedrig'}function dateFmt(){return new Intl.DateTimeFormat('de-DE',{weekday:'long',day:'2-digit',month:'long',year:'numeric'}).format(new Date())}
+function opt(t){const x=`${t.title} ${t.note||''}`.toLowerCase();let o='Reduziere die Aufgabe auf Ergebnis, Zeitbox und den nächsten sichtbaren Schritt. Starte direkt in die Ausführung statt in offene Recherche.',s=['Ergebnis in einem Satz formulieren.','Benötigte Datei, App oder Information öffnen.',`Timer auf ${t.minutes||25} Minuten stellen.`,'Nur diesen Block bearbeiten.','Ergebnis sichern und nächsten Schritt notieren.'],d='Erledigen';if(/mail|e-mail|email|antwort|nachricht|postfach/.test(x)){o='E-Mails gebündelt bearbeiten. Kurz, klar und mit nächstem Schritt antworten.';s=['Nur relevante Nachrichten auswählen.','Antwort in drei Sätzen strukturieren: Kontext, Entscheidung, nächster Schritt.','Anhänge nur bei Bedarf ergänzen.','Senden oder Wiedervorlage setzen.','Postfach wieder schließen.'];d='Bündeln'}else if(/angebot|kunde|vertrieb|verkauf|proposal/.test(x)){o='Vorhandene Vorlage nutzen und nur Kundenziel, Nutzenargument, Umfang und Preisblock anpassen.';s=['Beste Vorlage öffnen.','Kundenziel und Nutzen eintragen.','Leistungsumfang klar und kurz fassen.','Preisblock ergänzen.','PDF erstellen und senden.'];d='Erledigen'}else if(/rechnung|buchhaltung|beleg|zahlung|steuer/.test(x)){o='Nur Pflichtangaben, Abweichungen und Freigabe prüfen. Keine unnötige Vollanalyse.';s=['Dokument öffnen.','Betrag, Datum und Empfänger prüfen.','Mit Referenz vergleichen.','Abweichungen markieren.','Freigeben, bezahlen oder weiterleiten.'];d='Prüfen'}else if(/meeting|termin|call|anruf|besprechung/.test(x)){o='Nur Ziel, gewünschte Entscheidung und offene Fragen vorbereiten. Alles andere ist Beiwerk.';s=['Ziel in einem Satz festlegen.','Maximal drei Agenda-Punkte definieren.','Offene Fragen notieren.','Gewünschte Entscheidung formulieren.','Nach dem Termin Ergebnis dokumentieren.'];d='Vorbereiten'}else if(/einkauf|besorgung|apotheke|supermarkt|abholen/.test(x)){o='Mit einer bestehenden Route bündeln und eine kurze Liste nutzen. Nicht extra fahren.';s=['Mini-Liste erstellen.','Zeitpunkt oder Route festlegen.','Nur die Liste abarbeiten.','Nötige Belege sichern.','Aufgabe abhaken.'];d='Bündeln'}else if(/haushalt|aufräumen|putzen|wäsche|ordnung/.test(x)){o='Als kurzen Sprint behandeln, nicht als diffuse Großaufgabe.';s=['Kleinen Bereich auswählen.','Timer auf 15 Minuten stellen.','Müll, Oberfläche und Ablage trennen.','Nur diesen Bereich abschließen.','Nächsten Bereich separat planen.'];d='Sprint'}if(t.priority==='high')o+=' Da die Priorität hoch ist: vor Nachrichten, Social Media oder Kleinkram erledigen.';return{optimization:o,steps:s,decision:d}}
+function open(){return(data.tasks||[]).filter(t=>!t.done)}function today(){return open().filter(t=>!t.due||t.due===todayISO())}function focus(){return today().sort((a,b)=>{const s={high:0,medium:1,low:2};return(s[a.priority]??9)-(s[b.priority]??9)||(a.minutes??999)-(b.minutes??999)}).slice(0,3)}function business(){let t=(data.tasks||[]).filter(x=>x.area==='business');if(data.hideDone)t=t.filter(x=>!x.done);return t.sort((a,b)=>{const s={high:0,medium:1,low:2};return(s[a.priority]??9)-(s[b.priority]??9)})}function privateTasks(){let t=(data.tasks||[]).filter(x=>x.area==='private');if(data.hideDone)t=t.filter(x=>!x.done);return t.sort((a,b)=>{const s={high:0,medium:1,low:2};return(s[a.priority]??9)-(s[b.priority]??9)})}function fIndex(){const t=today();if(!t.length)return 100;let sc=0;t.forEach(x=>{sc+=x.priority==='high'?35:x.priority==='medium'?22:12;if((x.note||'').trim())sc+=8;if((x.minutes||0)<=30)sc+=5});return Math.max(10,Math.min(100,Math.round(sc/(t.length*48)*100)))}function doneRate(){const total=(data.tasks||[]).length||1,done=(data.tasks||[]).filter(t=>t.done).length;return Math.round(done/total*100)}function totalToday(){return(data.tasks||[]).filter(t=>!t.due||t.due===todayISO()).length}function doneToday(){return(data.tasks||[]).filter(t=>t.done&&(!t.due||t.due===todayISO())).length}function mode(){const o=open(),b=o.filter(t=>t.area==='business').length,p=o.filter(t=>t.area==='private').length;if(!o.length)return'Frei';if(o.length>=8)return'Triage';if(b>p)return'Geschäft';if(p>b)return'Privat';return'Fokus'}function pressure(){const n=open().length;return n>=8?'Hoch':n>=4?'Mittel':'Niedrig'}
+function card(t,full=false){const o=opt(t);return`<article class="card ${t.area==='private'?'violet':'amber'} ${full?'task':''} ${t.done?'done':''}" data-id="${t.id}">${full?`<div class="task-head"><button class="check" data-action="toggle">${t.done?'✓':''}</button><div>`:''}<div class="card-title">${esc(t.title)}</div>${t.note?`<div class="card-copy">${esc(t.note)}</div>`:''}<div class="badges"><span class="badge ${t.area==='private'?'private':'business'}">${area(t.area)}</span><span class="badge ${t.priority}">${prio(t.priority)}</span><span class="badge">${t.minutes||25} min</span><span class="badge">${esc(o.decision)}</span></div>${full?`</div><button class="btn small danger" data-action="delete">Entfernen</button></div><details><summary>Optimierung & Schritte</summary><div class="opt">${esc(o.optimization)}</div><ol class="steps">${o.steps.map(s=>`<li>${esc(s)}</li>`).join('')}</ol></details><div class="task-actions"><button class="btn small" data-action="copy">Prompt kopieren</button></div>`:`<div class="card-copy" style="margin-top:8px">${esc(o.optimization)}</div>`}</article>`}function evCard(e){return`<article class="card"><div class="badges" style="margin-top:0;margin-bottom:7px"><span class="badge business">${esc(e.time)}</span></div><div class="card-title">${esc(e.title)}</div>${e.note?`<div class="card-copy">${esc(e.note)}</div>`:''}</article>`}
+function renderHeader(){const now=new Date(),h=now.getHours(),g=h<11?'Guten Morgen':h<17?'Guten Tag':'Guten Abend',time=new Intl.DateTimeFormat('de-DE',{hour:'2-digit',minute:'2-digit'}).format(now),next=(data.events||[]).slice().sort((a,b)=>a.time.localeCompare(b.time))[0];$('headerDate').textContent=`${dateFmt()} · ${time}`;$('greeting').textContent=`${g}, ${data.name||'Jan'}.`;$('subline').textContent=`${dateFmt()} · Modus ${mode()} · Diagnose aktiv`;$('clockHead').textContent=time;$('clockMain').textContent=time;$('modeValue').textContent=mode();$('modeLabel').textContent=`Modus / ${mode()}`;$('focusHead').textContent=`${fIndex()}%`;$('focusMain').textContent=`${fIndex()}%`;$('openHead').textContent=open().length;$('openMain').textContent=open().length;$('doneTodayHead').textContent=doneToday();$('doneTodaySub').textContent=`von ${totalToday()} Tagesaufgaben`;$('bizHead').textContent=open().filter(t=>t.area==='business').length;$('privHead').textContent=open().filter(t=>t.area==='private').length;$('nextEventHead').textContent=next?next.time:'--:--';$('nextEventText').textContent=next?next.title:'Terminübersicht';$('metaPressure').textContent=pressure()}
+function renderStats(){const o=open(),b=o.filter(t=>t.area==='business').length,p=o.filter(t=>t.area==='private').length,next=(data.events||[]).slice().sort((a,b)=>a.time.localeCompare(b.time))[0];$('bizCountLabel').textContent=`${b} offen`;$('privCountLabel').textContent=`${p} offen`;$('diagDone').textContent=`${doneRate()}%`;$('diagDoneToday').textContent=doneToday();$('diagDoneTodayCopy').textContent=`von ${totalToday()} Tagesaufgaben`;$('diagEvents').textContent=(data.events||[]).length;$('diagCity').textContent=data.city||'--';$('diagDirective').textContent=focus()[0]?(focus()[0].priority==='high'?'Hoch':'Nächste'):'Frei';$('doneMain').textContent=`${doneRate()}%`;$('metaBusiness').textContent=b;$('metaPrivate').textContent=p;$('metaEvent').textContent=next?next.time:'--:--';$('metaEventCopy').textContent=next?next.title:'Terminübersicht';$('metaCity').textContent=data.city||'Wittlich';$('scheduleLabel').textContent=`${(data.events||[]).length} Einträge`}
+function taskPrompt(t){const o=opt(t);return`Aufgabe: ${t.title}\nBereich: ${area(t.area)}\nPriorität: ${prio(t.priority)}\nZeitbox: ${t.minutes||25} Minuten\nKontext: ${t.note||'Kein Zusatzkontext'}\n\nOptimierung:\n${o.optimization}\n\nBitte hilf mir, diese Aufgabe jetzt pragmatisch umzusetzen. Halte die Antwort kurz, konkret und handlungsorientiert. Beginne mit dem besten nächsten Schritt.`}
+function renderAssistant(){const t=focus()[0];if(!t){$('assistantTitle').textContent='Keine kritische Aufgabe offen.';$('assistantCopy').textContent='Nutze die freie Kapazität für Planung, Erholung oder einen bewusst gewählten nächsten Block.';$('coreObjective').textContent='System im Leerlauf';$('coreSubObjective').textContent='Keine Tagesaufgabe mit Vorrang';return}const o=opt(t);$('assistantTitle').textContent=t.title;$('assistantCopy').textContent=o.optimization;$('coreObjective').textContent=t.title.length>35?t.title.slice(0,35)+'…':t.title;$('coreSubObjective').textContent=`${prio(t.priority)} · ${t.minutes||25} min · ${area(t.area)}`}
+function renderBars(){function draw(id,v){const n=14,act=Math.max(1,Math.round((Math.min(100,v)/100)*n));$(id).innerHTML=Array.from({length:n},(_,i)=>`<i style="height:${6+((i*11)%22)}px;opacity:${i<act?.95:.16}"></i>`).join('')}draw('barsLoad',Math.min(100,open().length*13));draw('barsBusiness',Math.min(100,open().filter(t=>t.area==='business').length*22));draw('barsPrivate',Math.min(100,open().filter(t=>t.area==='private').length*24));draw('barsSchedule',Math.min(100,(data.events||[]).length*24))}
+function render(){renderHeader();renderStats();$('focusList').innerHTML=focus().length?focus().map(t=>card(t)).join(''):'<div class="empty">Keine Tagespriorität offen.</div>';$('businessList').innerHTML=business().length?business().map(t=>card(t,true)).join(''):'<div class="empty">Keine geschäftlichen Aufgaben.</div>';$('privateList').innerHTML=privateTasks().length?privateTasks().map(t=>card(t,true)).join(''):'<div class="empty">Keine privaten Aufgaben.</div>';$('scheduleList').innerHTML=(data.events||[]).length?(data.events||[]).slice().sort((a,b)=>a.time.localeCompare(b.time)).map(evCard).join(''):'<div class="empty">Keine Termine vorhanden.</div>';$('links').innerHTML=(data.links||[]).map(l=>`<a class="launch" href="${esc(l.url)}" target="_blank" rel="noopener"><div class="launch-title">${esc(l.title)}</div><div class="launch-url">${esc(l.url)}</div></a>`).join('');renderAssistant();renderBars();renderSmartHome();renderBriefing();$('nameInput').value=data.name||'';$('cityInput').value=data.city||'';$('cityLabel').textContent=data.city||'Wittlich';$('toggleDone').textContent=data.hideDone?'Erledigte anzeigen':'Erledigte ausblenden'}
+const wNames={0:'Klar',1:'Überwiegend klar',2:'Teilweise bewölkt',3:'Bewölkt',45:'Nebel',48:'Reifnebel',51:'Leichter Nieselregen',53:'Nieselregen',55:'Starker Nieselregen',61:'Leichter Regen',63:'Regen',65:'Starker Regen',80:'Schauer',81:'Schauer',82:'Starke Schauer',95:'Gewitter'};async function loadWeather(){const city=data.city||'Wittlich';$('cityInput').value=city;$('cityLabel').textContent=city;$('diagCity').textContent=city;$('metaCity').textContent=city;try{const geo=await fetch(`https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(city)}&count=1&language=de&format=json`).then(r=>r.json());if(!geo.results||!geo.results.length)throw new Error();const p=geo.results[0],w=await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${p.latitude}&longitude=${p.longitude}&current=temperature_2m,weather_code,wind_speed_10m&daily=temperature_2m_max,temperature_2m_min,precipitation_probability_max&timezone=auto`).then(r=>r.json()),c=w.current,d=w.daily,desc=wNames[c.weather_code]||'Wetter';$('weatherTemp').textContent=`${Math.round(c.temperature_2m)}°`;$('weatherCopy').innerHTML=`${desc} in ${p.name}.<br>Wind ${Math.round(c.wind_speed_10m)} km/h · Tageslage aktualisiert.`;$('weatherState').textContent='Live';$('minMax').textContent=`${Math.round(d.temperature_2m_min[0])}° / ${Math.round(d.temperature_2m_max[0])}°`;$('rainRisk').textContent=`${d.precipitation_probability_max[0]??'--'}%`;$('metaRain').textContent=`${d.precipitation_probability_max[0]??'--'}%`;$('weatherHead').textContent=`${Math.round(c.temperature_2m)}°`;$('weatherHeadText').textContent=p.name}catch(e){$('weatherTemp').textContent='--°';$('weatherCopy').textContent='Wetterdaten konnten nicht geladen werden. Ort oder Internetverbindung prüfen.';$('weatherState').textContent='Aus';$('minMax').textContent='--°';$('rainRisk').textContent='--%';$('metaRain').textContent='--%';$('weatherHead').textContent='--°';$('weatherHeadText').textContent='offline'}}
+
+function ensureSmartHome(){
+ if(!data.smartHome){
+  data.smartHome={mode:'Bereit',lights:false,speakers:false,plugs:false,lastAction:'Smarthome bereit. Ohne lokalen Connector läuft dieser Bereich im Demo-Modus.'};
+ }
+}
+function smartText(v){return v?'An':'Aus'}
+function smartClass(v){return v?'smart-state-on':'smart-state-off'}
+function renderSmartHome(){
+ ensureSmartHome();
+ const s=data.smartHome;
+ $('smartLights').textContent=smartText(s.lights);
+ $('smartLights').className='tiny-value '+smartClass(s.lights);
+ $('smartLightsCopy').textContent=s.lights?'Licht aktiv':'Licht ausgeschaltet';
+ $('smartSpeakers').textContent=smartText(s.speakers);
+ $('smartSpeakers').className='tiny-value '+smartClass(s.speakers);
+ $('smartSpeakersCopy').textContent=s.speakers?'Audio bereit':'Audio inaktiv';
+ $('smartPlugs').textContent=smartText(s.plugs);
+ $('smartPlugs').className='tiny-value '+smartClass(s.plugs);
+ $('smartPlugsCopy').textContent=s.plugs?'Steckdosen aktiv':'Steckdosen aus';
+ $('smartMode').textContent=s.mode||'Bereit';
+ $('smartMode').className='tiny-value smart-mode';
+ $('smartHomeLabel').textContent=s.connector?'Connector aktiv':'Alexa vorbereitet';
+ $('smartLog').textContent=s.lastAction||'Smarthome bereit.';
+}
+function applySceneLocal(scene,source){
+ ensureSmartHome();
+ const s=data.smartHome;
+ const names={fokusmodus:'Fokusmodus',arbeitsmodus:'Arbeitsmodus',abendmodus:'Abendmodus',nachtmodus:'Nachtmodus',alles_aus:'Alles aus'};
+ s.mode=names[scene]||scene;
+ if(scene==='fokusmodus'){s.lights=true;s.speakers=false;s.plugs=true;}
+ else if(scene==='arbeitsmodus'){s.lights=true;s.speakers=true;s.plugs=true;}
+ else if(scene==='abendmodus'){s.lights=true;s.speakers=true;s.plugs=true;}
+ else if(scene==='nachtmodus'){s.lights=false;s.speakers=false;s.plugs=false;}
+ else if(scene==='alles_aus'){s.lights=false;s.speakers=false;s.plugs=false;}
+ s.lastAction=`${s.mode} ausgelöst (${source}).`;
+ save();renderSmartHome();
+}
+async function runSmartScene(scene){
+ ensureSmartHome();
+ try{
+  const res=await fetch(`http://127.0.0.1:8787/api/smarthome/scene/${scene}`,{method:'POST'});
+  if(res.ok){
+   const payload=await res.json();
+   data.smartHome.connector=true;
+   data.smartHome.mode=payload.mode||data.smartHome.mode;
+   if(payload.state){Object.assign(data.smartHome,payload.state);}
+   data.smartHome.lastAction=payload.message||`${scene} über Connector ausgelöst.`;
+   save();renderSmartHome();return;
+  }
+ }catch(e){}
+ applySceneLocal(scene,'Demo-Modus');
+}
+async function toggleSmartDevice(device){
+ ensureSmartHome();
+ try{
+  const res=await fetch(`http://127.0.0.1:8787/api/smarthome/device/${device}/toggle`,{method:'POST'});
+  if(res.ok){
+   const payload=await res.json();
+   data.smartHome.connector=true;
+   if(payload.state){Object.assign(data.smartHome,payload.state);}
+   data.smartHome.lastAction=payload.message||`${device} über Connector gewechselt.`;
+   save();renderSmartHome();return;
+  }
+ }catch(e){}
+ const map={licht:'lights',lautsprecher:'speakers',steckdosen:'plugs'};
+ const key=map[device];
+ if(key){data.smartHome[key]=!data.smartHome[key];data.smartHome.lastAction=`${device} lokal gewechselt (Demo-Modus).`;save();renderSmartHome();}
+}
+
+
+function getHealthLocal(){
+ try{return JSON.parse(localStorage.getItem('jarvis_xiaomi_s1_health_v1'))||null}catch(e){return null}
+}
+function buildBriefing(){
+ const now=new Date();
+ const hour=now.getHours();
+ const greet=hour<11?'Guten Morgen':hour<17?'Guten Tag':'Guten Abend';
+ const openTasks=open();
+ const top=focus()[0];
+ const next=(data.events||[]).slice().sort((a,b)=>a.time.localeCompare(b.time))[0];
+ const health=getHealthLocal();
+ const smart=data.smartHome||{};
+ const lines=[];
+ if(top){lines.push(`Primärer Fokus: ${top.title}.`)}else{lines.push('Kein kritischer Tagesfokus offen.')}
+ if(next){lines.push(`Nächster Termin: ${next.time} · ${next.title}.`)}else{lines.push('Keine Termine in der lokalen Übersicht.')}
+ lines.push(`Aufgabenstand: ${doneToday()} von ${totalToday()} Tagesaufgaben erledigt, ${openTasks.length} offen.`);
+ if(health&&health.today){
+   const h=health.today;
+   const sleep=h.sleep_minutes?`${Math.floor(h.sleep_minutes/60)}:${String(h.sleep_minutes%60).padStart(2,'0')} h Schlaf`:'Schlafdaten fehlen';
+   const steps=h.steps?`${Number(h.steps).toLocaleString('de-DE')} Schritte`:'Schrittdaten fehlen';
+   lines.push(`Gesundheit: ${sleep}, ${steps}, Ruhepuls ${h.resting_hr||'--'} bpm.`);
+ }
+ if(smart&&smart.mode){lines.push(`Smarthome: Hausmodus ${smart.mode}, Licht ${smart.lights?'an':'aus'}, Steckdosen ${smart.plugs?'an':'aus'}.`)}
+ const recommendation=top?optimizationForBridge(top):'Freie Kapazität: Tagesplanung prüfen oder Erholung sichern.';
+ return {lead:`${greet}, ${data.name||'Jan'}. Deine Tageslage wurde aus den verfügbaren lokalen Modulen zusammengestellt.`,lines,recommendation};
+}
+function optimizationForBridge(task){
+ try{return opt(task).optimization}catch(e){return 'Nächsten sichtbaren Schritt starten und Aufgabe zeitlich begrenzen.'}
+}
+function renderBriefing(){
+ if(!$('briefingLead'))return;
+ const b=buildBriefing();
+ $('briefingLead').textContent=b.lead;
+ $('briefingList').innerHTML=b.lines.map(x=>`<li>${esc(x)}</li>`).join('')+`<li><strong style="color:var(--amber)">Empfehlung:</strong> ${esc(b.recommendation)}</li>`;
+ $('briefingCode').textContent='Lokal · '+new Intl.DateTimeFormat('de-DE',{hour:'2-digit',minute:'2-digit'}).format(new Date());
+}
+function buildJarvisBackup(){
+ return {
+  format:'jarvis-local-backup-v1',
+  exportedAt:new Date().toISOString(),
+  dashboard:localStorage.getItem('jarvis_functional_preview_v1'),
+  health:localStorage.getItem('jarvis_xiaomi_s1_health_v1'),
+  note:'Lokale JARVIS-Sicherung. Enthält nur Daten, die in diesem Browser gespeichert wurden.'
+ };
+}
+function downloadTextFile(name,text){
+ const blob=new Blob([text],{type:'application/json;charset=utf-8'}),url=URL.createObjectURL(blob),a=document.createElement('a');
+ a.href=url;a.download=name;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),500);
+}
+async function importJarvisBackup(file){
+ const text=await file.text(),backup=JSON.parse(text);
+ if(!backup||backup.format!=='jarvis-local-backup-v1')throw new Error('Unbekanntes Backup-Format');
+ if(backup.dashboard)localStorage.setItem('jarvis_functional_preview_v1',backup.dashboard);
+ if(backup.health)localStorage.setItem('jarvis_xiaomi_s1_health_v1',backup.health);
+ data=load();
+ render();
+ if(window.JarvisHealth&&window.JarvisHealth.render)window.JarvisHealth.render();
+ loadWeather();
+}
+
+$('taskForm').addEventListener('submit',e=>{e.preventDefault();const title=$('taskTitle').value.trim();if(!title)return;data.tasks.unshift({id:crypto.randomUUID(),title,area:$('taskArea').value,priority:$('taskPriority').value,minutes:Number($('taskMinutes').value)||30,note:$('taskNote').value.trim(),done:false,due:todayISO(),created:new Date().toISOString()});save();e.target.reset();$('taskMinutes').value=30;render()});
+$('eventForm').addEventListener('submit',e=>{e.preventDefault();const time=$('eventTime').value.trim(),title=$('eventTitle').value.trim();if(!time||!title)return;data.events.push({id:crypto.randomUUID(),time,title,note:''});save();e.target.reset();render()});
+document.body.addEventListener('click',async e=>{const btn=e.target.closest('button');if(!btn)return;const te=e.target.closest('.task');if(te){const t=data.tasks.find(x=>x.id===te.dataset.id);if(t){const a=btn.dataset.action;if(a==='toggle'){t.done=!t.done;save();render();return}if(a==='delete'){data.tasks=data.tasks.filter(x=>x.id!==t.id);save();render();return}if(a==='copy'){try{await navigator.clipboard.writeText(taskPrompt(t));btn.textContent='Kopiert';setTimeout(()=>btn.textContent='Prompt kopieren',1200)}catch(err){}return}}}if(btn.id==='refreshBriefing'){renderBriefing();return}else if(btn.id==='copyBriefing'){const b=buildBriefing();navigator.clipboard&&navigator.clipboard.writeText([b.lead,...b.lines,'Empfehlung: '+b.recommendation].join('\n'));btn.textContent='Kopiert';setTimeout(()=>btn.textContent='Briefing kopieren',1200);return}else if(btn.id==='exportJarvisBackup'){downloadTextFile('jarvis_backup_'+new Date().toISOString().slice(0,10)+'.json',JSON.stringify(buildJarvisBackup(),null,2));return}else if(btn.id==='importJarvisBackupButton'){$('importJarvisBackupFile').click();return}else if(btn.dataset.scene){runSmartScene(btn.dataset.scene);return}else if(btn.dataset.device){toggleSmartDevice(btn.dataset.device);return}else if(btn.id==='saveCity'){data.city=$('cityInput').value.trim()||'Wittlich';save();render();loadWeather()}else if(btn.id==='toggleDone'){data.hideDone=!data.hideDone;save();render()}else if(btn.id==='printView'){window.print()}else if(btn.id==='openSettings'){$('settingsDialog').showModal()}else if(btn.id==='closeSettings'){$('settingsDialog').close()}else if(btn.id==='saveSettings'){data.name=$('nameInput').value.trim()||'Jan';save();render();$('settingsDialog').close()}else if(btn.id==='addLink'){const title=$('newLinkTitle').value.trim(),url=norm($('newLinkUrl').value.trim());if(!title||!url)return;data.links.push({title,url});$('newLinkTitle').value='';$('newLinkUrl').value='';save();render()}else if(btn.id==='clearAll'){if(!confirm('Alle lokalen Daten wirklich zurücksetzen?'))return;localStorage.removeItem(S);data=structuredClone(D);save();render();loadWeather();$('settingsDialog').close()}else if(btn.id==='addExample'){const ex=[{title:'Kundenmail mit Entscheidung beantworten',area:'business',priority:'medium',minutes:25,note:'Nicht breit antworten. Entscheidung + nächster Schritt.'},{title:'Vertriebsangebot nach Vorlage aktualisieren',area:'business',priority:'high',minutes:40,note:'Nur Kundenziel, Umfang und Preisblock anpassen.'},{title:'Apothekenbesorgung mit Route bündeln',area:'private',priority:'medium',minutes:20,note:'Keine Extrafahrt.'},{title:'15-Minuten-Haushaltssprint',area:'private',priority:'low',minutes:15,note:'Nur einen Bereich abschließen.'}].map(t=>({...t,id:crypto.randomUUID(),done:false,due:todayISO(),created:new Date().toISOString()}));data.tasks=[...ex,...data.tasks];save();render()}});
+$('importJarvisBackupFile').addEventListener('change',async e=>{const file=e.target.files&&e.target.files[0];if(!file)return;try{await importJarvisBackup(file);$('backupStatus').textContent='Backup erfolgreich importiert.'}catch(err){$('backupStatus').textContent='Import fehlgeschlagen: '+(err.message||'Datei prüfen.')}e.target.value=''});
+function bg(){const c=$('matrix'),ctx=c.getContext('2d');let w,h,dpr,pts=[];function resize(){dpr=window.devicePixelRatio||1;w=c.width=Math.floor(innerWidth*dpr);h=c.height=Math.floor(innerHeight*dpr);c.style.width=innerWidth+'px';c.style.height=innerHeight+'px';pts=Array.from({length:Math.min(150,Math.floor(innerWidth/10))},()=>({x:Math.random()*w,y:Math.random()*h,vx:(Math.random()-.5)*.14*dpr,vy:(Math.random()-.5)*.14*dpr}))}function draw(){ctx.clearRect(0,0,w,h);for(const p of pts){p.x+=p.vx;p.y+=p.vy;if(p.x<0||p.x>w)p.vx*=-1;if(p.y<0||p.y>h)p.vy*=-1;ctx.beginPath();ctx.arc(p.x,p.y,1.2*dpr,0,Math.PI*2);ctx.fillStyle='rgba(111,224,255,.18)';ctx.fill()}for(let i=0;i<pts.length;i++){for(let j=i+1;j<pts.length;j++){const a=pts[i],b=pts[j],dx=a.x-b.x,dy=a.y-b.y,dist=Math.sqrt(dx*dx+dy*dy),t=100*dpr;if(dist<t){ctx.strokeStyle=`rgba(111,224,255,${(1-dist/t)*.10})`;ctx.lineWidth=1*dpr;ctx.beginPath();ctx.moveTo(a.x,a.y);ctx.lineTo(b.x,b.y);ctx.stroke()}}}requestAnimationFrame(draw)}addEventListener('resize',resize);resize();draw()}bg();render();loadWeather();setInterval(renderHeader,20000);
+})();
+</script>
+
+
+<script>
+(function(){
+  const KEY='jarvis_xiaomi_s1_health_v1';
+  const $=id=>document.getElementById(id);
+  function today(){const d=new Date(),tz=d.getTimezoneOffset()*60000;return new Date(d-tz).toISOString().slice(0,10)}
+  function demo(){return {source:'Xiaomi Watch S1 · Demo',lastSync:new Date().toISOString(),today:{date:today(),steps:6840,sleep_minutes:432,resting_hr:61,avg_hr:76,spo2:97,stress:31,calories:436},week:[
+    {date:'Tag -6',steps:5120,sleep_minutes:398},{date:'Tag -5',steps:7210,sleep_minutes:451},{date:'Tag -4',steps:8420,sleep_minutes:462},{date:'Tag -3',steps:6310,sleep_minutes:421},{date:'Tag -2',steps:9030,sleep_minutes:474},{date:'Gestern',steps:7740,sleep_minutes:439},{date:'Heute',steps:6840,sleep_minutes:432}
+  ]}}
+  function load(){try{return JSON.parse(localStorage.getItem(KEY))||null}catch(e){return null}}
+  function save(d){localStorage.setItem(KEY,JSON.stringify(d))}
+  function clear(){localStorage.removeItem(KEY)}
+  function fmt(n){return Number(n||0).toLocaleString('de-DE')}
+  function sleepText(m){m=Number(m||0);return m?`${Math.floor(m/60)}:${String(m%60).padStart(2,'0')} h`:'--'}
+  function score(d){if(!d||!d.today)return 0;const t=d.today,step=Math.min(100,(Number(t.steps||0)/9000)*100),sleep=Math.max(0,100-(Math.abs(Number(t.sleep_minutes||0)-450)/180)*100),hr=t.resting_hr?Math.max(0,100-Math.abs(Number(t.resting_hr)-60)*3):70,sp=t.spo2?Math.max(0,Math.min(100,(Number(t.spo2)-90)*12.5)):75,stress=t.stress?Math.max(0,100-Number(t.stress)):70;return Math.round(step*.28+sleep*.28+hr*.16+sp*.12+stress*.16)}
+  function rec(d){if(!d||!d.today)return'Noch keine Gesundheitsdaten importiert.';const t=d.today,sc=score(d),parts=[];if(Number(t.sleep_minutes||0)<390)parts.push('Schlaf war kurz: heute Fokusblöcke kürzer halten.');if(Number(t.steps||0)<4000)parts.push('Bewegung bisher niedrig: kurze Gehpausen einplanen.');if(Number(t.stress||0)>55)parts.push('Stresswert erhöht: weniger parallele Aufgaben und mehr Puffer.');if(Number(t.resting_hr||0)>78)parts.push('Ruhepuls auffällig hoch gegenüber dem Demo-Zielbereich: Belastung reduzieren und Verlauf beobachten.');if(Number(t.spo2||0)&&Number(t.spo2)<94)parts.push('SpO₂-Wert niedrig: Messung in Ruhe prüfen; bei Beschwerden medizinisch abklären.');if(parts.length)return parts.join(' ');if(sc>=80)return'Gute Tagesbasis: anspruchsvollste Aufgabe zuerst, danach normale Aktivität beibehalten.';if(sc>=60)return'Solide Basis: Fokusblöcke mit kurzen Pausen kombinieren und Schlaf heute Abend schützen.';return'Heute defensiver planen: nur die wichtigsten Aufgaben, ausreichend Pausen und Erholung.'}
+  function render(){
+    const d=load();
+    if(!$('healthIndex'))return;
+    if(!d||!d.today){
+      $('healthIndex').textContent='--%';$('healthIndexCopy').textContent='keine Daten';
+      $('healthSteps').textContent='--';$('healthStepsCopy').textContent='Tagesziel';
+      $('healthSleep').textContent='--';$('healthSleepCopy').textContent='letzte Nacht';
+      $('healthHr').textContent='--';$('healthHrCopy').textContent='bpm';
+      $('healthSpo2').textContent='--';$('healthSpo2Copy').textContent='SpO₂';
+      $('healthStress').textContent='--';$('healthStressCopy').textContent='Belastung';
+      $('healthRecommendation').textContent='Noch keine Gesundheitsdaten importiert.';
+      $('healthSourceLabel').textContent='Xiaomi S1 vorbereitet';
+      return;
+    }
+    const t=d.today, sc=score(d);
+    $('healthIndex').textContent=`${sc}%`;
+    $('healthIndex').className='tiny-value '+(sc>=75?'health-pulse':sc>=55?'health-warn':'health-low');
+    $('healthIndexCopy').textContent=d.lastSync?`Stand ${new Date(d.lastSync).toLocaleString('de-DE')}`:'lokal';
+    $('healthSteps').textContent=fmt(t.steps);
+    $('healthStepsCopy').textContent=`${Math.round((Number(t.steps||0)/9000)*100)}% von 9.000`;
+    $('healthSleep').textContent=sleepText(t.sleep_minutes);
+    $('healthSleepCopy').textContent='Ziel ca. 7:30 h';
+    $('healthHr').textContent=t.resting_hr?`${t.resting_hr}`:'--';
+    $('healthHrCopy').textContent='Ruhepuls bpm';
+    $('healthSpo2').textContent=t.spo2?`${t.spo2}%`:'--';
+    $('healthSpo2Copy').textContent='letzter Wert';
+    $('healthStress').textContent=t.stress?`${t.stress}`:'--';
+    $('healthStressCopy').textContent='niedriger ist besser';
+    $('healthRecommendation').textContent=rec(d);
+    $('healthSourceLabel').textContent=d.source||'Xiaomi S1';
+  }
+  function parseCSV(text){
+    const lines=text.trim().split(/\r?\n/).filter(Boolean);
+    if(lines.length<2)throw new Error('CSV braucht Kopfzeile und mindestens eine Datenzeile.');
+    const head=lines[0].split(',').map(x=>x.trim().toLowerCase());
+    const rows=lines.slice(1).map(line=>{
+      const cols=line.split(',').map(x=>x.trim());
+      const obj={}; head.forEach((h,i)=>obj[h]=cols[i]); return obj;
+    });
+    const last=rows[rows.length-1];
+    return {source:'Xiaomi S1 / CSV Import',lastSync:new Date().toISOString(),today:{
+      date:last.date||today(),
+      steps:Number(last.steps||0),
+      sleep_minutes:Number(last.sleep_minutes||last.sleep||0),
+      resting_hr:Number(last.resting_hr||last.resting_heart_rate||0),
+      avg_hr:Number(last.avg_hr||last.average_hr||0),
+      spo2:Number(last.spo2||0),
+      stress:Number(last.stress||0),
+      calories:Number(last.calories||0)
+    },week:rows.slice(-7).map(r=>({date:r.date||'',steps:Number(r.steps||0),sleep_minutes:Number(r.sleep_minutes||r.sleep||0)}))}
+  }
+  document.addEventListener('click',e=>{
+    const b=e.target.closest('button'); if(!b)return;
+    if(b.id==='importHealthButton')$('importHealthFile').click();
+    if(b.id==='clearHealthButton'){if(confirm('Lokale Gesundheitsdaten löschen?')){clear();render()}}
+  });
+  $('importHealthFile')&&$('importHealthFile').addEventListener('change',async e=>{
+    const f=e.target.files&&e.target.files[0]; if(!f)return;
+    try{const d=parseCSV(await f.text());save(d);render()}catch(err){alert('Import fehlgeschlagen: '+err.message)}
+    e.target.value='';
+  });
+  window.JarvisHealth={render,load,save,demo};
+  render();
+})();
+</script>
+<div class="device-badge" id="deviceBadge">Ansicht · Desktop</div>
+<script>(function(){function d(){const w=innerWidth;const m=w>=1700?'Desktop XL':w>=1300?'Desktop':w>=980?'Laptop':'Compact';const e=document.getElementById('deviceBadge');if(e)e.textContent='Ansicht · '+m}addEventListener('resize',d);d()})();</script>
+</body>
+</html>
