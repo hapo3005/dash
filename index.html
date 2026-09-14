@@ -3,67 +3,128 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Dashboard</title>
+<meta name="color-scheme" content="dark">
+<title>Personal OS</title>
 <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-<div class="app">
-<header class="topbar">
-<div class="brand">DASH</div>
-<nav class="nav" aria-label="Hauptnavigation">
-<button data-page="today" class="active">Heute</button>
-<button data-page="projects">Projekte</button>
-<button data-page="tasks">Aufgaben</button>
-<button data-page="calendar">Kalender</button>
-<button data-page="modules">Module</button>
-</nav>
-<div class="topmeta"><span id="weather" class="weather">Wetter</span><span id="date">--</span><strong id="clock">--:--</strong></div>
-</header>
-<main class="main">
-<section class="page active" id="page-today">
-<div class="hero"><div><div class="eyebrow">Persönliches Dashboard</div><h1 id="hello">Guten Tag, Jan.</h1><p>Was ist heute wichtig, was kommt als Nächstes und wo lohnt sich jetzt deine Zeit?</p></div><button class="primary" id="whatNow">Was jetzt?</button></div>
-<div class="grid today-grid">
-<div class="grid">
-<article class="card"><div class="section-title"><h2>Heute wichtig</h2><span class="subtle">max. 3 Prioritäten</span></div><div id="todayFocus" class="focus-list"></div></article>
-<article class="card" id="nowBox"><div class="section-title"><h2>Jetzt am sinnvollsten</h2><span class="subtle">aus Priorität, Dauer & Terminlage</span></div><div class="now-box"><strong id="nowTitle">Noch keine Empfehlung</strong><p id="nowCopy"></p></div></article>
-<article class="card"><div class="section-title"><h2>Aktive Projekte</h2><button class="secondary" data-page="projects">Alle Projekte</button></div><div id="todayProjects" class="event-list"></div></article>
+<div class="os-shell">
+  <aside class="sidebar">
+    <div class="identity"><div class="mark">J</div><div><strong>Personal OS</strong><span>Jan · Workspace</span></div></div>
+    <nav class="side-nav" aria-label="Hauptnavigation">
+      <button data-page="today" class="active"><span>◉</span>Heute</button>
+      <button data-page="inbox"><span>↓</span>Inbox <b id="inboxCount">0</b></button>
+      <button data-page="projects"><span>□</span>Projekte</button>
+      <button data-page="tasks"><span>✓</span>Work Queue</button>
+      <button data-page="calendar"><span>▦</span>Kalender</button>
+      <button data-page="monitor"><span>⌁</span>Monitor</button>
+      <button data-page="library"><span>⌘</span>Library</button>
+    </nav>
+    <div class="side-spacer"></div>
+    <nav class="side-nav secondary-nav">
+      <button data-page="modules"><span>＋</span>Module</button>
+    </nav>
+    <div class="sidebar-foot"><div class="status-dot"></div><span>lokal gespeichert</span></div>
+  </aside>
+
+  <div class="workspace">
+    <header class="topbar">
+      <div class="top-left"><button class="menu-btn" id="menuBtn" aria-label="Navigation">☰</button><div><div class="crumb" id="crumb">Heute</div><div class="top-date" id="date">--</div></div></div>
+      <div class="top-right"><span id="weather">Wetter</span><strong id="clock">--:--</strong><button class="quick-capture" id="quickCapture">＋ Erfassen</button></div>
+    </header>
+
+    <main class="content">
+      <section class="page active" id="page-today">
+        <div class="page-head"><div><span class="kicker">Command Center</span><h1 id="hello">Guten Tag, Jan.</h1><p id="dayline">Konzentriere dich auf das, was heute eine Entscheidung oder Aktion verlangt.</p></div></div>
+
+        <div class="signal-strip" id="signalStrip"></div>
+
+        <section class="now-card" id="nowCard">
+          <div class="now-label">Jetzt</div>
+          <div class="now-main"><div><h2 id="nowTitle">Keine priorisierte Aufgabe</h2><p id="nowCopy">Sobald eine Aufgabe priorisiert ist, erscheint hier dein sinnvollster nächster Arbeitsblock.</p></div><div class="now-actions"><button class="primary" id="startNow">Starten</button><button class="ghost" id="deferNow">Zurückstellen</button><button class="ghost" id="openNowProject">Projekt öffnen</button></div></div>
+          <div class="now-meta" id="nowMeta"></div>
+        </section>
+
+        <div class="today-layout">
+          <section class="panel"><div class="panel-head"><div><span class="section-kicker">Danach</span><h2>Prioritäten</h2></div><button class="text-btn" data-page="tasks">Work Queue →</button></div><div id="todayFocus" class="stack-list"></div></section>
+          <section class="panel"><div class="panel-head"><div><span class="section-kicker">Zeit</span><h2>Nächste Termine</h2></div><button class="text-btn" data-page="calendar">Kalender →</button></div><div id="todayEvents" class="stack-list"></div></section>
+        </div>
+
+        <section class="panel project-glance"><div class="panel-head"><div><span class="section-kicker">Aktiv</span><h2>Projekte</h2></div><button class="text-btn" data-page="projects">Alle Projekte →</button></div><div id="todayProjects" class="project-row"></div></section>
+      </section>
+
+      <section class="page" id="page-inbox">
+        <div class="page-head"><div><span class="kicker">Capture first, decide later</span><h1>Inbox</h1><p>Ideen, Aufgaben, Links und Notizen landen zuerst hier. Danach entscheidest du, was daraus wird.</p></div><button class="primary" id="addInbox">＋ Neuer Eintrag</button></div>
+        <div id="inboxList" class="inbox-list"></div>
+      </section>
+
+      <section class="page" id="page-projects">
+        <div class="page-head"><div><span class="kicker">Outcome driven</span><h1>Projekte</h1><p>Jedes Projekt braucht Ziel, Meilenstein, nächste Aktion und sichtbare Blocker.</p></div></div>
+        <div id="projectList" class="project-grid"></div>
+      </section>
+
+      <section class="page" id="page-tasks">
+        <div class="page-head"><div><span class="kicker">Execution</span><h1>Work Queue</h1><p>Heute, diese Woche und später – über alle Projekte hinweg.</p></div><button class="primary" id="addTaskBtn">＋ Aufgabe</button></div>
+        <div class="queue-tabs"><button data-queue="today" class="active">Heute</button><button data-queue="week">Diese Woche</button><button data-queue="later">Später</button><button data-queue="done">Erledigt</button></div>
+        <div id="taskList" class="task-list"></div>
+      </section>
+
+      <section class="page" id="page-calendar">
+        <div class="page-head"><div><span class="kicker">Protect your time</span><h1>Kalender</h1><p>Termine und freie Arbeitsfenster – nicht nur eine Liste von Verpflichtungen.</p></div><button class="primary" id="addEventBtn">＋ Termin</button></div>
+        <div class="calendar-grid"><section class="panel"><div class="panel-head"><h2>Heute</h2><span class="muted" id="calendarSummary"></span></div><div id="calendarEvents" class="timeline"></div></section><section class="panel"><div class="panel-head"><h2>Freie Fenster</h2></div><div id="freeWindows" class="stack-list"></div></section></div>
+      </section>
+
+      <section class="page" id="page-monitor">
+        <div class="page-head"><div><span class="kicker">Exception based</span><h1>Monitor</h1><p>Grün bedeutet: nichts tun. Nur Abweichungen und Blocker sollen Aufmerksamkeit ziehen.</p></div></div>
+        <div id="monitorList" class="monitor-grid"></div>
+      </section>
+
+      <section class="page" id="page-library">
+        <div class="page-head"><div><span class="kicker">Find, don't hunt</span><h1>Library</h1><p>Wichtige Arbeitsmittel, Repositories, Dokumente und Vorlagen an einem Ort.</p></div></div>
+        <div id="libraryList" class="library-grid"></div>
+      </section>
+
+      <section class="page" id="page-modules">
+        <div class="page-head"><div><span class="kicker">On demand</span><h1>Module</h1><p>Zusatzbereiche bleiben getrennt vom täglichen Command Center.</p></div></div>
+        <div id="moduleList" class="module-grid"></div>
+      </section>
+    </main>
+  </div>
+
+  <aside class="context-rail" id="contextRail">
+    <div class="context-head"><span>Kontext</span><button id="clearContext">×</button></div>
+    <div id="contextBody"></div>
+  </aside>
 </div>
-<div class="grid">
-<article class="card"><div class="section-title"><h2>Nächste Termine</h2><button class="secondary" data-page="calendar">Kalender</button></div><div id="todayEvents" class="event-list"></div></article>
-<article class="card"><div class="section-title"><h2>Schnellzugriff</h2></div><div id="quicklinks" class="quicklinks"></div></article>
-</div>
-</div>
-</section>
-<section class="page" id="page-projects">
-<div class="hero"><div><div class="eyebrow">Arbeitszentrale</div><h1>Projekte</h1><p>Nur der aktuelle Stand und der nächste konkrete Schritt.</p></div></div>
-<div id="projectList" class="project-list"></div>
-</section>
-<section class="page" id="page-tasks">
-<div class="hero"><div><div class="eyebrow">Inbox & Planung</div><h1>Aufgaben</h1><p>Alles darf hier hinein. Auf „Heute“ erscheinen nur die wichtigsten Dinge.</p></div></div>
-<form id="taskForm" class="form">
-<input id="taskTitle" placeholder="Neue Aufgabe" required>
-<select id="projectOptions"></select>
-<select id="taskPriority"><option value="high">Hoch</option><option value="medium" selected>Mittel</option><option value="low">Niedrig</option></select>
-<input id="taskMinutes" type="number" min="5" step="5" value="30" title="Minuten">
-<select id="taskArea"><option value="business">Geschäftlich</option><option value="private">Privat</option></select>
-<button class="primary" type="submit">Hinzufügen</button>
-</form>
-<div id="taskList" class="task-list"></div>
-</section>
-<section class="page" id="page-calendar">
-<div class="hero"><div><div class="eyebrow">Zeit statt Datenfriedhof</div><h1>Kalender</h1><p>Termine so knapp wie möglich, damit freie Zeit sichtbar bleibt.</p></div></div>
-<div class="calendar-layout">
-<article class="card"><div class="section-title"><h2>Termine</h2></div><div id="calendarEvents" class="event-list"></div></article>
-<article class="card"><div class="section-title"><h2>Termin hinzufügen</h2></div><form id="eventForm" class="grid"><input id="eventTime" placeholder="14:30" required><input id="eventTitle" placeholder="Termin" required><input id="eventNote" placeholder="Optionaler Hinweis"><button class="primary" type="submit">Eintragen</button></form></article>
-</div>
-</section>
-<section class="page" id="page-modules">
-<div class="hero"><div><div class="eyebrow">Nur auf Abruf</div><h1>Module</h1><p>Zusatzinformationen gehören hierher. Auf „Heute“ erscheinen sie nur, wenn Handlungsbedarf besteht.</p></div></div>
-<div id="moduleList" class="module-list"></div>
-<div class="footer-note">Nächster sinnvoller Ausbauschritt: echte Kalender-/GitHub-Daten anbinden und Projektstatus automatisch statt manuell aktualisieren.</div>
-</section>
-</main>
-</div>
+
+<dialog id="captureDialog" class="dialog">
+  <form method="dialog" id="captureForm">
+    <div class="dialog-head"><div><span class="kicker">Quick capture</span><h2>Etwas erfassen</h2></div><button value="cancel" class="icon-btn">×</button></div>
+    <label>Was möchtest du festhalten?<input id="captureTitle" required placeholder="Aufgabe, Idee, Notiz oder Link"></label>
+    <label>Notiz<textarea id="captureNote" rows="4" placeholder="Optionaler Kontext"></textarea></label>
+    <div class="dialog-actions"><button value="cancel" class="ghost">Abbrechen</button><button value="default" class="primary" id="saveCapture">In Inbox legen</button></div>
+  </form>
+</dialog>
+
+<dialog id="taskDialog" class="dialog">
+  <form method="dialog" id="taskForm">
+    <div class="dialog-head"><div><span class="kicker">Work Queue</span><h2>Aufgabe</h2></div><button value="cancel" class="icon-btn">×</button></div>
+    <label>Titel<input id="taskTitle" required></label>
+    <div class="form-grid"><label>Projekt<select id="projectOptions"></select></label><label>Priorität<select id="taskPriority"><option value="high">Hoch</option><option value="medium" selected>Mittel</option><option value="low">Niedrig</option></select></label><label>Dauer<input id="taskMinutes" type="number" min="5" step="5" value="30"></label><label>Planung<select id="taskBucket"><option value="today">Heute</option><option value="week">Diese Woche</option><option value="later">Später</option></select></label></div>
+    <label>Kontext<textarea id="taskNote" rows="3"></textarea></label>
+    <div class="dialog-actions"><button value="cancel" class="ghost">Abbrechen</button><button value="default" class="primary" id="saveTask">Speichern</button></div>
+  </form>
+</dialog>
+
+<dialog id="eventDialog" class="dialog">
+  <form method="dialog" id="eventForm">
+    <div class="dialog-head"><div><span class="kicker">Kalender</span><h2>Termin</h2></div><button value="cancel" class="icon-btn">×</button></div>
+    <div class="form-grid two"><label>Uhrzeit<input id="eventTime" type="time" required></label><label>Dauer in Min.<input id="eventDuration" type="number" min="15" step="15" value="60"></label></div>
+    <label>Titel<input id="eventTitle" required></label><label>Hinweis<input id="eventNote"></label>
+    <div class="dialog-actions"><button value="cancel" class="ghost">Abbrechen</button><button value="default" class="primary" id="saveEvent">Eintragen</button></div>
+  </form>
+</dialog>
+
 <script src="app.js"></script>
 </body>
 </html>
